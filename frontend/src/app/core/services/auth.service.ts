@@ -10,7 +10,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  private readonly API_URL = 'http://localhost:8080/api/v1';
+  private readonly API_URL = 'https://hrms-backend-ba7y.onrender.com/api/v1';
 
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
