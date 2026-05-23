@@ -1,0 +1,26 @@
+# IDE & System Files
+.idea/
+.vscode/
+*.iml
+*.iws
+.DS_Store
+Thumbs.db
+
+# Java/Spring Boot (Backend)
+**/target/
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+**/*.zip
+**/*.tar.gz
+**/*.rar
+backend/src/main/resources/uploads/
+
+# Angular (Frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.sass-cache/
+connect.lock
+input.css

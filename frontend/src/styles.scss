@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+// =========================================================================
+// DESIGN SYSTEM VARIABLES (HSL PALETTE)
+// =========================================================================
+:root {
+  // Light Theme
+  --primary-hue: 224;
+  --primary: hsl(var(--primary-hue), 85%, 58%);
+  --primary-hover: hsl(var(--primary-hue), 85%, 48%);
+  --accent: hsl(263, 85%, 64%);
+  --background: hsl(220, 33%, 97%);
+  --surface: hsl(0, 0%, 100%);
+  --surface-secondary: hsl(220, 20%, 95%);
+  --text-primary: hsl(222, 47%, 12%);
+  --text-secondary: hsl(220, 15%, 40%);
+  --text-muted: hsl(220, 10%, 60%);
+  --border: hsl(220, 15%, 90%);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  
+  --success: hsl(142, 72%, 45%);
+  --warning: hsl(38, 92%, 50%);
+  --danger: hsl(346, 84%, 55%);
+}
+
+.dark-theme {
+  // Dark Theme
+  --background: hsl(224, 71%, 4%);
+  --surface: hsl(224, 71%, 7%);
+  --surface-secondary: hsl(224, 40%, 12%);
+  --text-primary: hsl(210, 40%, 98%);
+  --text-secondary: hsl(215, 20%, 75%);
+  --text-muted: hsl(218, 12%, 55%);
+  --border: hsl(224, 30%, 15%);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --primary: hsl(var(--primary-hue), 95%, 65%);
+  --primary-hover: hsl(var(--primary-hue), 95%, 55%);
+  --accent: hsl(263, 90%, 72%);
+}
+
+// =========================================================================
+// GENERAL STYLES & RESET
+// =========================================================================
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Outfit', sans-serif;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+// =========================================================================
+// PREMIUM LAYOUT UTILITIES
+// =========================================================================
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 2rem;
+  background-color: var(--background);
+  position: relative;
+}
+
+// Glassmorphism Card Style
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+// Grid layout for analytics metrics
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+// Dashboard metric card contents
+.metric-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .metric-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  .metric-info {
+    h3 {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    p {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+  }
+}
+
+// Custom Premium Table Styles
+.custom-table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+  margin-top: 1rem;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  th {
+    background-color: var(--surface-secondary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 1rem;
+    font-size: 0.925rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background-color: var(--surface-secondary);
+  }
+}
+
+// Status Badge styles
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--success);
+}
+
+.badge-warning {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+// Custom modern forms
+.custom-form-group {
+  margin-bottom: 1.25rem;
+
+  label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+  }
+}
+
+// Premium Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+
+  &:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.btn-secondary {
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+
+  &:hover {
+    background-color: var(--border);
+  }
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: white;
+
+  &:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+}
+
+// Material UI override overrides for dark mode compatibility
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: var(--surface) !important;
+}
+
+.mat-mdc-card {
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.mat-mdc-table {
+  background-color: var(--surface) !important;
+}
+
+.mat-mdc-paginator {
+  background-color: var(--surface) !important;
+  color: var(--text-primary) !important;
+}
