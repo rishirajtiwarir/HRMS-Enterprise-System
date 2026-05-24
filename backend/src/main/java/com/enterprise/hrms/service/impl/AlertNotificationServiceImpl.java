@@ -32,12 +32,19 @@ public class AlertNotificationServiceImpl implements AlertNotificationService {
                 message.setSubject(subject);
                 message.setText(body);
                 mailSender.send(message);
-                logger.info("Real email alert successfully sent to {} via JavaMailSender.", to);
+                logger.info("✅ EMAIL SENT SUCCESSFULLY to {} via Gmail SMTP.", to);
             } catch (Exception e) {
-                logger.error("Failed to send real email via SMTP: {}. Check credentials in application.properties.", e.getMessage());
+                logger.error("❌ SMTP EMAIL FAILED — Error: {}", e.getMessage());
+                if (e.getCause() != null) {
+                    logger.error("❌ Root cause: {}", e.getCause().getMessage());
+                    if (e.getCause().getCause() != null) {
+                        logger.error("❌ Deep cause: {}", e.getCause().getCause().getMessage());
+                    }
+                }
+                logger.error("❌ ACTION REQUIRED: Check Gmail App Password & 2-Step Verification at https://myaccount.google.com/apppasswords");
             }
         } else {
-            logger.warn("JavaMailSender is not initialized. Falling back to log simulation.");
+            logger.warn("⚠️ JavaMailSender bean is null — spring-boot-starter-mail may not be configured properly.");
         }
     }
 
