@@ -27,7 +27,43 @@ public class EmployeeMapper {
         dto.setDesignation(employee.getDesignation());
         dto.setStatus(employee.getStatus().name());
         dto.setProfileImage(employee.getProfileImage());
-        dto.setSalary(employee.getSalary());
+
+        // Enforce salary privacy
+        try {
+            org.springframework.security.core.Authentication auth = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !(auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof com.enterprise.hrms.security.UserPrincipal) {
+                    com.enterprise.hrms.security.UserPrincipal currentUser = (com.enterprise.hrms.security.UserPrincipal) principal;
+                    boolean isSelf = currentUser.getEmployeeId() != null && currentUser.getEmployeeId().equals(employee.getId());
+                    boolean hasPrivilegedRole = auth.getAuthorities().stream()
+                            .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                            .anyMatch(role -> role.equals("ROLE_ADMIN") || role.equals("ROLE_SUPER_ADMIN") || role.equals("ROLE_HR") || role.equals("ROLE_HR_MANAGER"));
+                    
+                    if (isSelf || hasPrivilegedRole) {
+                        dto.setSalary(employee.getSalary());
+                    } else {
+                        dto.setSalary(null);
+                    }
+                } else {
+                    dto.setSalary(employee.getSalary());
+                }
+            } else {
+                dto.setSalary(employee.getSalary());
+            }
+        } catch (Exception e) {
+            dto.setSalary(employee.getSalary());
+        }
+
+        dto.setEmergencyContactName(employee.getEmergencyContactName());
+        dto.setEmergencyContactPhone(employee.getEmergencyContactPhone());
+        dto.setEmergencyContactRelation(employee.getEmergencyContactRelation());
+
+        if (employee.getManager() != null) {
+            dto.setManagerId(employee.getManager().getId());
+            dto.setManagerName(employee.getManager().getFirstName() + " " + employee.getManager().getLastName());
+        }
 
         if (employee.getDepartment() != null) {
             dto.setDepartmentId(employee.getDepartment().getId());
@@ -67,6 +103,16 @@ public class EmployeeMapper {
         }
         employee.setProfileImage(dto.getProfileImage());
         employee.setSalary(dto.getSalary());
+
+        employee.setEmergencyContactName(dto.getEmergencyContactName());
+        employee.setEmergencyContactPhone(dto.getEmergencyContactPhone());
+        employee.setEmergencyContactRelation(dto.getEmergencyContactRelation());
+
+        if (dto.getManagerId() != null) {
+            Employee manager = new Employee();
+            manager.setId(dto.getManagerId());
+            employee.setManager(manager);
+        }
 
         return employee;
     }

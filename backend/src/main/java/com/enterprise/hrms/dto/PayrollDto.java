@@ -22,6 +22,8 @@ public class PayrollDto {
     private Double basicSalary;
     private Double allowances;
     private Double deductions;
+    private Double taxDeduction;
+    private Double bonus;
     private Double netSalary;
     private String status;
     private LocalDate paymentDate;

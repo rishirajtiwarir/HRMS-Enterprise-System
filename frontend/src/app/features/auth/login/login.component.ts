@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { HttpClient } from '@angular/common/http';
 
 // Angular Material Imports
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -166,6 +167,66 @@ import { MatIconModule } from '@angular/material/icon';
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Floating Glassmorphic Support Button -->
+      <button class="support-fab glass-effect" (click)="toggleSupportDrawer()" aria-label="Contact Support">
+        <span class="material-icons fab-icon">support_agent</span>
+        <span class="fab-text">Support & Feedback</span>
+      </button>
+
+      <!-- Glassmorphic Support Slide-out Drawer -->
+      <div class="support-drawer glass-effect" [class.open]="showSupportDrawer">
+        <div class="drawer-header">
+          <div class="header-left">
+            <span class="material-icons drawer-icon text-blue">forum</span>
+            <h3>Support & Feedback</h3>
+          </div>
+          <button class="close-btn" (click)="toggleSupportDrawer()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <p class="drawer-desc">Need assistance or want to leave feedback? Submit your ticket below and it will instantly notify the administrator via email and phone calls.</p>
+
+        <form [formGroup]="supportForm" (ngSubmit)="submitSupport()" class="drawer-form">
+          <div class="custom-form-group">
+            <label for="support-name">Your Full Name</label>
+            <div class="input-container">
+              <span class="material-icons input-icon">person</span>
+              <input type="text" id="support-name" formControlName="name" placeholder="Enter your full name">
+            </div>
+          </div>
+
+          <div class="custom-form-group">
+            <label for="support-email">Your Email Address</label>
+            <div class="input-container">
+              <span class="material-icons input-icon">email</span>
+              <input type="email" id="support-email" formControlName="email" placeholder="Enter your email">
+            </div>
+          </div>
+
+          <div class="custom-form-group">
+            <label for="support-subject">Subject</label>
+            <div class="input-container">
+              <span class="material-icons input-icon">subject</span>
+              <input type="text" id="support-subject" formControlName="subject" placeholder="What is this regarding?">
+            </div>
+          </div>
+
+          <div class="custom-form-group">
+            <label for="support-message">Detailed Message</label>
+            <div class="input-container message-container">
+              <span class="material-icons input-icon msg-icon">message</span>
+              <textarea id="support-message" formControlName="message" placeholder="Type your message here..." rows="4"></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-support-btn" [disabled]="supportLoading || supportForm.invalid">
+            <mat-spinner *ngIf="supportLoading" diameter="22" class="spinner"></mat-spinner>
+            <span *ngIf="!supportLoading">Submit Ticket</span>
+          </button>
+        </form>
       </div>
     </div>
   `,
@@ -692,6 +753,197 @@ import { MatIconModule } from '@angular/material/icon';
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
     }
+
+    /* Floating Support Button */
+    .support-fab {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 99;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(12px);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(59, 130, 246, 0.25);
+      }
+
+      .fab-icon {
+        font-size: 1.25rem;
+        color: #3b82f6;
+      }
+
+      .fab-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+
+      @media (max-width: 480px) {
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.65rem 1rem;
+        .fab-text { display: none; }
+      }
+    }
+
+    /* Support Slide-out Drawer */
+    .support-drawer {
+      position: absolute;
+      top: 0;
+      right: -420px;
+      width: 100%;
+      max-width: 400px;
+      height: 100%;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.85);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+
+      &.open {
+        right: 0;
+      }
+
+      .drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding-bottom: 1rem;
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+
+          .drawer-icon {
+            font-size: 1.5rem;
+            color: #3b82f6;
+          }
+
+          h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            letter-spacing: -0.3px;
+          }
+        }
+
+        .close-btn {
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.4);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          border-radius: 50%;
+          transition: all 0.2s ease;
+
+          &:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+          }
+        }
+      }
+
+      .drawer-desc {
+        font-size: 0.85rem;
+        color: hsl(215, 15%, 70%);
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      .drawer-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+      }
+
+      .message-container {
+        textarea {
+          width: 100%;
+          padding: 0.85rem 1rem 0.85rem 2.75rem;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background-color: rgba(30, 41, 59, 0.5);
+          color: white;
+          font-size: 0.95rem;
+          outline: none;
+          resize: none;
+          transition: all 0.2s ease;
+
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+          }
+
+          &:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            background-color: rgba(30, 41, 59, 0.7);
+          }
+        }
+
+        .msg-icon {
+          top: 14px;
+        }
+      }
+
+      .submit-support-btn {
+        width: 100%;
+        height: 46px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+
+        &:hover:not([disabled]) {
+          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+          transform: translateY(-1px);
+        }
+
+        &[disabled] {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+
+      @media (max-width: 480px) {
+        max-width: 100%;
+        padding: 1.5rem;
+      }
+    }
   `]
 })
 export class LoginComponent {
@@ -699,14 +951,47 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private http = inject(HttpClient);
 
   loginForm: FormGroup = this.fb.group({
     username: ['', [Validators.required]],
     password: ['', [Validators.required]]
   });
 
+  supportForm: FormGroup = this.fb.group({
+    name: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    subject: ['', [Validators.required]],
+    message: ['', [Validators.required]]
+  });
+
   loading = false;
   hidePassword = true;
+  showSupportDrawer = false;
+  supportLoading = false;
+
+  toggleSupportDrawer() {
+    this.showSupportDrawer = !this.showSupportDrawer;
+  }
+
+  submitSupport() {
+    if (this.supportForm.invalid) {
+      return;
+    }
+    this.supportLoading = true;
+    this.http.post('https://hrms-enterprise-system-1.onrender.com/api/v1/feedback', this.supportForm.value).subscribe({
+      next: () => {
+        this.supportLoading = false;
+        this.notificationService.showSuccess('Support ticket submitted successfully!');
+        this.supportForm.reset();
+        this.showSupportDrawer = false;
+      },
+      error: (err) => {
+        this.supportLoading = false;
+        this.notificationService.showError('Failed to submit support ticket. Please try again.');
+      }
+    });
+  }
 
   autofill(user: string, pass: string) {
     this.loginForm.setValue({

@@ -41,6 +41,12 @@ public class Payroll {
 
     private Double deductions = 0.0;
 
+    @Column(name = "tax_deduction")
+    private Double taxDeduction = 0.0;
+
+    @Column(name = "bonus")
+    private Double bonus = 0.0;
+
     @Column(name = "net_salary", nullable = false)
     private Double netSalary;
 
@@ -59,7 +65,9 @@ public class Payroll {
     protected void calculateNetSalary() {
         if (this.allowances == null) this.allowances = 0.0;
         if (this.deductions == null) this.deductions = 0.0;
+        if (this.taxDeduction == null) this.taxDeduction = 0.0;
+        if (this.bonus == null) this.bonus = 0.0;
         if (this.basicSalary == null) this.basicSalary = 0.0;
-        this.netSalary = this.basicSalary + this.allowances - this.deductions;
+        this.netSalary = this.basicSalary + this.allowances + this.bonus - this.deductions - this.taxDeduction;
     }
 }

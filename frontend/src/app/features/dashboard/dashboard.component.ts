@@ -90,6 +90,49 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         </div>
       </div>
 
+      <!-- Feedback Support Tickets Inbox (For Admin and HR roles) -->
+      <div *ngIf="isAdminOrHr" class="feedback-inbox-section glass-card">
+        <div class="inbox-header">
+          <div class="header-title">
+            <mat-icon class="inbox-icon">feedback</mat-icon>
+            <h2>Support & Feedback Inbox</h2>
+          </div>
+          <span class="badge badge-info" *ngIf="unreadCount > 0">{{ unreadCount }} Unread</span>
+        </div>
+
+        <div *ngIf="feedbacks.length === 0" class="empty-inbox">
+          <mat-icon class="empty-icon">mail_outline</mat-icon>
+          <p>No feedback or support messages received yet.</p>
+        </div>
+
+        <div *ngIf="feedbacks.length > 0" class="tickets-list">
+          <div *ngFor="let item of feedbacks" class="ticket-item" [class.unread]="!item.read">
+            <div class="ticket-top">
+              <div class="ticket-sender">
+                <strong>{{ item.name }}</strong>
+                <span class="sender-email">&lt;{{ item.email }}&gt;</span>
+              </div>
+              <span class="ticket-date">{{ item.createdAt | date:'short' }}</span>
+            </div>
+
+            <div class="ticket-subject">
+              <span class="subject-tag">Subject:</span> {{ item.subject }}
+            </div>
+
+            <p class="ticket-message">{{ item.message }}</p>
+
+            <div class="ticket-actions">
+              <button *ngIf="!item.read" class="action-btn read-btn" (click)="markFeedbackAsRead(item.id)">
+                <mat-icon>done_all</mat-icon> Mark Read
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteFeedback(item.id)">
+                <mat-icon>delete</mat-icon> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <ng-template #employeeWelcome>
         <div class="glass-card employee-quickactions">
           <h3>Quick Links</h3>
@@ -183,6 +226,174 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         color: var(--text-secondary);
       }
     }
+
+    /* Feedback Inbox Styles */
+    .feedback-inbox-section {
+      margin-top: 1.5rem;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .inbox-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding-bottom: 1rem;
+
+        .header-title {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+
+          .inbox-icon {
+            color: var(--primary);
+            font-size: 1.5rem;
+          }
+
+          h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+          }
+        }
+      }
+    }
+
+    .empty-inbox {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+
+      .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.4;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+    }
+
+    .tickets-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: 450px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .ticket-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: all 0.25s ease;
+
+      &.unread {
+        border-left: 4px solid var(--primary);
+        background: rgba(59, 130, 246, 0.03);
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+
+      .ticket-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .ticket-sender {
+          font-size: 0.95rem;
+          color: white;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          .sender-email {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+          }
+        }
+
+        .ticket-date {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+        }
+      }
+
+      .ticket-subject {
+        font-size: 0.9rem;
+        color: white;
+        font-weight: 500;
+
+        .subject-tag {
+          color: var(--primary);
+          font-weight: 600;
+        }
+      }
+
+      .ticket-message {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin: 0;
+        white-space: pre-wrap;
+      }
+
+      .ticket-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.25rem;
+
+        .action-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 6px;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          mat-icon {
+            font-size: 1rem;
+            width: 16px;
+            height: 16px;
+          }
+
+          &.read-btn {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+
+            &:hover {
+              background-color: rgba(59, 130, 246, 0.2);
+            }
+          }
+
+          &.delete-btn {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+
+            &:hover {
+              background-color: rgba(239, 68, 68, 0.2);
+            }
+          }
+        }
+      }
+    }
   `]
 })
 export class DashboardComponent implements OnInit {
@@ -197,6 +408,9 @@ export class DashboardComponent implements OnInit {
   deptDistribution: Map<string, number> = new Map();
   deptSalaryBudget: Map<string, number> = new Map();
 
+  feedbacks: any[] = [];
+  unreadCount = 0;
+
   ngOnInit() {
     const user = this.authService.currentUserValue;
     if (user) {
@@ -207,7 +421,36 @@ export class DashboardComponent implements OnInit {
 
     if (this.isAdminOrHr) {
       this.loadDashboardStats();
+      this.loadFeedbacks();
     }
+  }
+
+  loadFeedbacks() {
+    this.http.get<any[]>('https://hrms-enterprise-system-1.onrender.com/api/v1/feedback').subscribe({
+      next: (data) => {
+        this.feedbacks = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        this.unreadCount = this.feedbacks.filter(f => !f.read).length;
+      },
+      error: () => {}
+    });
+  }
+
+  markFeedbackAsRead(id: number) {
+    this.http.put<any>(`https://hrms-enterprise-system-1.onrender.com/api/v1/feedback/${id}/read`, {}).subscribe({
+      next: () => {
+        this.loadFeedbacks();
+      },
+      error: () => {}
+    });
+  }
+
+  deleteFeedback(id: number) {
+    this.http.delete<any>(`https://hrms-enterprise-system-1.onrender.com/api/v1/feedback/${id}`).subscribe({
+      next: () => {
+        this.loadFeedbacks();
+      },
+      error: () => {}
+    });
   }
 
   private loadDashboardStats() {

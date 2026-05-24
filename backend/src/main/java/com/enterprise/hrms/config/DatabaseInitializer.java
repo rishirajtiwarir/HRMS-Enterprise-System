@@ -7,6 +7,7 @@ import com.enterprise.hrms.repository.RoleRepository;
 import com.enterprise.hrms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,15 +37,26 @@ public class DatabaseInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // 1. Seed Roles
-        if (roleRepository.count() == 0) {
-            roleRepository.save(new Role(RoleName.ROLE_ADMIN));
-            roleRepository.save(new Role(RoleName.ROLE_HR));
-            roleRepository.save(new Role(RoleName.ROLE_EMPLOYEE));
+        // Fix Column Width Truncation in MySQL roles table
+        try {
+            jdbcTemplate.execute("ALTER TABLE roles MODIFY name VARCHAR(50) NOT NULL");
+        } catch (Exception e) {
+            // Ignore if table isn't created or alter fails
         }
+
+        // 1. Seed Roles
+        if (roleRepository.findByName(RoleName.ROLE_ADMIN).isEmpty()) roleRepository.save(new Role(RoleName.ROLE_ADMIN));
+        if (roleRepository.findByName(RoleName.ROLE_HR).isEmpty()) roleRepository.save(new Role(RoleName.ROLE_HR));
+        if (roleRepository.findByName(RoleName.ROLE_EMPLOYEE).isEmpty()) roleRepository.save(new Role(RoleName.ROLE_EMPLOYEE));
+        if (roleRepository.findByName(RoleName.ROLE_SUPER_ADMIN).isEmpty()) roleRepository.save(new Role(RoleName.ROLE_SUPER_ADMIN));
+        if (roleRepository.findByName(RoleName.ROLE_HR_MANAGER).isEmpty()) roleRepository.save(new Role(RoleName.ROLE_HR_MANAGER));
+        if (roleRepository.findByName(RoleName.ROLE_TEAM_LEAD).isEmpty()) roleRepository.save(new Role(RoleName.ROLE_TEAM_LEAD));
 
         // 2. Seed Departments
         Department itDept = null;
@@ -71,6 +83,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         } else {
             itDept = departmentRepository.findByCode("IT").orElse(null);
             hrDept = departmentRepository.findByCode("HR").orElse(null);
+            finDept = departmentRepository.findByCode("FIN").orElse(null);
         }
 
         // 3. Seed Demo Users
@@ -78,6 +91,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMIN).orElse(null);
             Role hrRole = roleRepository.findByName(RoleName.ROLE_HR).orElse(null);
             Role employeeRole = roleRepository.findByName(RoleName.ROLE_EMPLOYEE).orElse(null);
+            Role superAdminRole = roleRepository.findByName(RoleName.ROLE_SUPER_ADMIN).orElse(null);
+            Role hrManagerRole = roleRepository.findByName(RoleName.ROLE_HR_MANAGER).orElse(null);
+            Role teamLeadRole = roleRepository.findByName(RoleName.ROLE_TEAM_LEAD).orElse(null);
 
             // A. Create Admin Employee & User
             Employee adminEmployee = new Employee();
@@ -100,14 +116,42 @@ public class DatabaseInitializer implements CommandLineRunner {
             
             Set<Role> adminRoles = new HashSet<>();
             adminRoles.add(adminRole);
-            adminRoles.add(employeeRole); // Admins are also employees
+            adminRoles.add(employeeRole);
             adminUser.setRoles(adminRoles);
             
             adminUser.setEmployee(adminEmployee);
             adminEmployee.setUser(adminUser);
             employeeRepository.save(adminEmployee);
 
-            // B. Create HR Manager Employee & User
+            // B. Create Super Admin Employee & User
+            Employee superAdminEmployee = new Employee();
+            superAdminEmployee.setFirstName("Raj");
+            superAdminEmployee.setLastName("Tiwari");
+            superAdminEmployee.setEmail("superadmin@enterprise.com");
+            superAdminEmployee.setPhone("+1-555-7777");
+            superAdminEmployee.setDateOfBirth(LocalDate.of(1985, 1, 1));
+            superAdminEmployee.setJoiningDate(LocalDate.of(2018, 1, 1));
+            superAdminEmployee.setDesignation("Chief Executive Officer");
+            superAdminEmployee.setSalary(250000.0);
+            superAdminEmployee.setDepartment(itDept);
+            superAdminEmployee.setStatus(EmployeeStatus.ACTIVE);
+
+            User superAdminUser = new User();
+            superAdminUser.setUsername("super_admin");
+            superAdminUser.setPassword(passwordEncoder.encode("admin123"));
+            superAdminUser.setEmail("superadmin@enterprise.com");
+            superAdminUser.setActive(true);
+
+            Set<Role> superAdminRoles = new HashSet<>();
+            superAdminRoles.add(superAdminRole);
+            superAdminRoles.add(employeeRole);
+            superAdminUser.setRoles(superAdminRoles);
+
+            superAdminUser.setEmployee(superAdminEmployee);
+            superAdminEmployee.setUser(superAdminUser);
+            employeeRepository.save(superAdminEmployee);
+
+            // C. Create HR Manager Employee & User (Sarah Jenkins)
             Employee hrEmployee = new Employee();
             hrEmployee.setFirstName("Sarah");
             hrEmployee.setLastName("Jenkins");
@@ -127,7 +171,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             hrUser.setActive(true);
 
             Set<Role> hrRoles = new HashSet<>();
-            hrRoles.add(hrRole);
+            hrRoles.add(hrManagerRole);
             hrRoles.add(employeeRole);
             hrUser.setRoles(hrRoles);
 
@@ -135,7 +179,35 @@ public class DatabaseInitializer implements CommandLineRunner {
             hrEmployee.setUser(hrUser);
             employeeRepository.save(hrEmployee);
 
-            // C. Create Standard Employee
+            // D. Create Team Leader Employee & User (Michael Scott)
+            Employee leadEmployee = new Employee();
+            leadEmployee.setFirstName("Michael");
+            leadEmployee.setLastName("Scott");
+            leadEmployee.setEmail("lead@enterprise.com");
+            leadEmployee.setPhone("+1-555-9999");
+            leadEmployee.setDateOfBirth(LocalDate.of(1988, 3, 10));
+            leadEmployee.setJoiningDate(LocalDate.of(2021, 2, 1));
+            leadEmployee.setDesignation("Software Engineering Lead");
+            leadEmployee.setSalary(90000.0);
+            leadEmployee.setDepartment(itDept);
+            leadEmployee.setStatus(EmployeeStatus.ACTIVE);
+
+            User leadUser = new User();
+            leadUser.setUsername("team_leader");
+            leadUser.setPassword(passwordEncoder.encode("lead123"));
+            leadUser.setEmail("lead@enterprise.com");
+            leadUser.setActive(true);
+
+            Set<Role> leadRoles = new HashSet<>();
+            leadRoles.add(teamLeadRole);
+            leadRoles.add(employeeRole);
+            leadUser.setRoles(leadRoles);
+
+            leadUser.setEmployee(leadEmployee);
+            leadEmployee.setUser(leadUser);
+            Employee savedLead = employeeRepository.save(leadEmployee);
+
+            // E. Create Standard Employee (John Doe, reportee of Michael Scott)
             Employee standardEmployee = new Employee();
             standardEmployee.setFirstName("John");
             standardEmployee.setLastName("Doe");
@@ -147,6 +219,10 @@ public class DatabaseInitializer implements CommandLineRunner {
             standardEmployee.setSalary(60000.0);
             standardEmployee.setDepartment(itDept);
             standardEmployee.setStatus(EmployeeStatus.ACTIVE);
+            standardEmployee.setManager(savedLead);
+            standardEmployee.setEmergencyContactName("Jane Doe");
+            standardEmployee.setEmergencyContactPhone("8103425522");
+            standardEmployee.setEmergencyContactRelation("Spouse");
 
             User standardUser = new User();
             standardUser.setUsername("john_doe");

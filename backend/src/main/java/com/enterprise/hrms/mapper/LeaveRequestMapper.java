@@ -22,6 +22,10 @@ public class LeaveRequestMapper {
         dto.setReason(leaveRequest.getReason());
         dto.setStatus(leaveRequest.getStatus().name());
         dto.setRejectionReason(leaveRequest.getRejectionReason());
+        dto.setSickLeaveDocumentUrl(leaveRequest.getSickLeaveDocumentUrl());
+        dto.setStage(leaveRequest.getStage());
+        dto.setCurrentApproverRole(leaveRequest.getCurrentApproverRole());
+        dto.setCancelled(leaveRequest.getCancelled());
         dto.setCreatedAt(leaveRequest.getCreatedAt());
 
         if (leaveRequest.getEmployee() != null) {
@@ -49,6 +53,14 @@ public class LeaveRequestMapper {
             leaveRequest.setStatus(LeaveStatus.valueOf(dto.getStatus()));
         }
         leaveRequest.setRejectionReason(dto.getRejectionReason());
+        leaveRequest.setSickLeaveDocumentUrl(dto.getSickLeaveDocumentUrl());
+        if (dto.getStage() != null) {
+            leaveRequest.setStage(dto.getStage());
+        }
+        leaveRequest.setCurrentApproverRole(dto.getCurrentApproverRole());
+        if (dto.getCancelled() != null) {
+            leaveRequest.setCancelled(dto.getCancelled());
+        }
 
         return leaveRequest;
     }

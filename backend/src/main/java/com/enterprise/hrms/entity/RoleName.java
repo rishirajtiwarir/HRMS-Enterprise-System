@@ -6,5 +6,8 @@ package com.enterprise.hrms.entity;
 public enum RoleName {
     ROLE_ADMIN,
     ROLE_HR,
-    ROLE_EMPLOYEE
+    ROLE_EMPLOYEE,
+    ROLE_SUPER_ADMIN,
+    ROLE_HR_MANAGER,
+    ROLE_TEAM_LEAD
 }

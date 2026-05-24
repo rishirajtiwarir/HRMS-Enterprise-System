@@ -12,4 +12,5 @@ public interface LeaveRequestService {
     List<LeaveRequestDto> getEmployeeLeaveHistory(Long employeeId);
     List<LeaveRequestDto> getAllLeaveRequests();
     Map<String, Integer> getLeaveBalances(Long employeeId);
+    LeaveRequestDto cancelLeave(Long id);
 }

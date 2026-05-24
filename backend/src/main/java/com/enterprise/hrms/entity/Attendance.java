@@ -39,6 +39,18 @@ public class Attendance {
     @Column(name = "work_hours")
     private Double workHours; // CheckOut - CheckIn in fractional hours
 
+    @Column(name = "is_late")
+    private Boolean isLate = false;
+
+    @Column(name = "overtime_minutes")
+    private Integer overtimeMinutes = 0;
+
+    @Column(name = "is_work_from_home")
+    private Boolean isWorkFromHome = false;
+
+    @Column(name = "shift")
+    private String shift = "DAY"; // DAY, NIGHT, EVENING
+
     // Attendance is linked to an Employee
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "employee_id", nullable = false)

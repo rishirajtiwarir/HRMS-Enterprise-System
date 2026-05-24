@@ -17,10 +17,47 @@ public class PayrollMapper {
         dto.setId(payroll.getId());
         dto.setPayPeriodStart(payroll.getPayPeriodStart());
         dto.setPayPeriodEnd(payroll.getPayPeriodEnd());
-        dto.setBasicSalary(payroll.getBasicSalary());
-        dto.setAllowances(payroll.getAllowances());
-        dto.setDeductions(payroll.getDeductions());
-        dto.setNetSalary(payroll.getNetSalary());
+        // Enforce role checks on financial payroll mapping
+        boolean isAuthorized = false;
+        try {
+            org.springframework.security.core.Authentication auth = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !(auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof com.enterprise.hrms.security.UserPrincipal) {
+                    com.enterprise.hrms.security.UserPrincipal currentUser = (com.enterprise.hrms.security.UserPrincipal) principal;
+                    boolean isSelf = payroll.getEmployee() != null && currentUser.getEmployeeId() != null && currentUser.getEmployeeId().equals(payroll.getEmployee().getId());
+                    boolean hasPrivilegedRole = auth.getAuthorities().stream()
+                            .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                            .anyMatch(role -> role.equals("ROLE_ADMIN") || role.equals("ROLE_SUPER_ADMIN") || role.equals("ROLE_HR") || role.equals("ROLE_HR_MANAGER"));
+                    
+                    if (isSelf || hasPrivilegedRole) {
+                        isAuthorized = true;
+                    }
+                }
+            } else {
+                isAuthorized = true; // allow mapping on startup/seed
+            }
+        } catch (Exception e) {
+            isAuthorized = true; // fallback
+        }
+
+        if (isAuthorized) {
+            dto.setBasicSalary(payroll.getBasicSalary());
+            dto.setAllowances(payroll.getAllowances());
+            dto.setDeductions(payroll.getDeductions());
+            dto.setTaxDeduction(payroll.getTaxDeduction());
+            dto.setBonus(payroll.getBonus());
+            dto.setNetSalary(payroll.getNetSalary());
+        } else {
+            dto.setBasicSalary(null);
+            dto.setAllowances(null);
+            dto.setDeductions(null);
+            dto.setTaxDeduction(null);
+            dto.setBonus(null);
+            dto.setNetSalary(null);
+        }
+
         dto.setStatus(payroll.getStatus().name());
         dto.setPaymentDate(payroll.getPaymentDate());
         dto.setPayslipPdfPath(payroll.getPayslipPdfPath());
@@ -46,6 +83,8 @@ public class PayrollMapper {
         payroll.setBasicSalary(dto.getBasicSalary());
         payroll.setAllowances(dto.getAllowances());
         payroll.setDeductions(dto.getDeductions());
+        payroll.setTaxDeduction(dto.getTaxDeduction());
+        payroll.setBonus(dto.getBonus());
         payroll.setNetSalary(dto.getNetSalary());
         if (dto.getStatus() != null) {
             payroll.setStatus(PayrollStatus.valueOf(dto.getStatus()));

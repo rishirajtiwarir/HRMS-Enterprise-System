@@ -67,6 +67,17 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
         LeaveRequest request = leaveRequestMapper.toEntity(dto);
         request.setEmployee(employee);
         request.setStatus(LeaveStatus.PENDING);
+        
+        // Setup initial approval stages
+        if (employee.getManager() != null) {
+            request.setStage(1);
+            request.setCurrentApproverRole("ROLE_TEAM_LEAD");
+        } else {
+            request.setStage(2);
+            request.setCurrentApproverRole("ROLE_HR");
+        }
+        request.setCancelled(false);
+        request.setSickLeaveDocumentUrl(dto.getSickLeaveDocumentUrl());
 
         LeaveRequest savedRequest = leaveRequestRepository.save(request);
 
@@ -92,28 +103,43 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
             throw new BadRequestException("Leave request has already been processed!");
         }
 
-        request.setStatus(status);
         if (status == LeaveStatus.REJECTED) {
+            request.setStatus(LeaveStatus.REJECTED);
             request.setRejectionReason(rejectionReason);
-        }
-
-        LeaveRequest updatedRequest = leaveRequestRepository.save(request);
-
-        // Notify the employee about approval/rejection
-        Notification notification = new Notification();
-        notification.setEmployee(request.getEmployee());
-        if (status == LeaveStatus.APPROVED) {
-            notification.setTitle("Leave Request Approved");
-            notification.setMessage("Your leave request for " + request.getLeaveType().name() + " from " 
-                    + request.getStartDate() + " to " + request.getEndDate() + " has been approved.");
-            notification.setType("SUCCESS");
-        } else {
+            
+            Notification notification = new Notification();
+            notification.setEmployee(request.getEmployee());
             notification.setTitle("Leave Request Rejected");
             notification.setMessage("Your leave request for " + request.getLeaveType().name() + " has been rejected. Reason: " + rejectionReason);
             notification.setType("ALERT");
+            notificationRepository.save(notification);
+        } else if (status == LeaveStatus.APPROVED) {
+            // Multi-stage approval
+            if (request.getStage() == 1) {
+                request.setStage(2);
+                request.setCurrentApproverRole("ROLE_HR");
+                request.setStatus(LeaveStatus.PENDING);
+                
+                Notification notification = new Notification();
+                notification.setEmployee(request.getEmployee());
+                notification.setTitle("Leave Pending HR Approval");
+                notification.setMessage("Your leave request has been approved by your Team Lead and is now pending final HR review.");
+                notification.setType("INFO");
+                notificationRepository.save(notification);
+            } else {
+                request.setStatus(LeaveStatus.APPROVED);
+                
+                Notification notification = new Notification();
+                notification.setEmployee(request.getEmployee());
+                notification.setTitle("Leave Request Fully Approved");
+                notification.setMessage("Your leave request for " + request.getLeaveType().name() + " from " 
+                        + request.getStartDate() + " to " + request.getEndDate() + " has been fully approved.");
+                notification.setType("SUCCESS");
+                notificationRepository.save(notification);
+            }
         }
-        notificationRepository.save(notification);
 
+        LeaveRequest updatedRequest = leaveRequestRepository.save(request);
         return leaveRequestMapper.toDto(updatedRequest);
     }
 
@@ -141,7 +167,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
         }
 
         List<LeaveRequest> approvedLeaves = leaveRequestRepository.findByEmployeeId(employeeId).stream()
-                .filter(req -> req.getStatus() == LeaveStatus.APPROVED)
+                .filter(req -> req.getStatus() == LeaveStatus.APPROVED && (req.getCancelled() == null || !req.getCancelled()))
                 .collect(Collectors.toList());
 
         Map<String, Integer> balances = new HashMap<>();
@@ -159,5 +185,27 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
         }
 
         return balances;
+    }
+
+    @Override
+    @Transactional
+    public LeaveRequestDto cancelLeave(Long id) {
+        LeaveRequest request = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Leave request not found with ID: " + id));
+        
+        request.setCancelled(true);
+        request.setStatus(LeaveStatus.REJECTED);
+        request.setRejectionReason("Cancelled by employee.");
+        
+        LeaveRequest saved = leaveRequestRepository.save(request);
+        
+        Notification notification = new Notification();
+        notification.setEmployee(request.getEmployee());
+        notification.setTitle("Leave Request Cancelled");
+        notification.setMessage("You have cancelled your leave request for " + request.getLeaveType().name() + ".");
+        notification.setType("INFO");
+        notificationRepository.save(notification);
+        
+        return leaveRequestMapper.toDto(saved);
     }
 }

@@ -82,4 +82,23 @@ public class LeaveRequestController {
         List<LeaveRequestDto> requests = leaveRequestService.getAllLeaveRequests();
         return ResponseEntity.ok(requests);
     }
+
+    // Cancel a leave request (Self only)
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<LeaveRequestDto> cancelLeave(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        
+        LeaveRequestDto record = leaveRequestService.getAllLeaveRequests().stream()
+                .filter(p -> p.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new com.enterprise.hrms.exception.ResourceNotFoundException("Leave request not found with ID: " + id));
+        
+        if (currentUser.getEmployeeId() == null || !currentUser.getEmployeeId().equals(record.getEmployeeId())) {
+            throw new BadRequestException("Access denied: You can only cancel your own leave requests.");
+        }
+        
+        LeaveRequestDto resolved = leaveRequestService.cancelLeave(id);
+        return ResponseEntity.ok(resolved);
+    }
 }

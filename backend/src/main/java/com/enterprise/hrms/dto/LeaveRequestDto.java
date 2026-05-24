@@ -32,5 +32,9 @@ public class LeaveRequestDto {
 
     private String status; // PENDING, APPROVED, REJECTED
     private String rejectionReason;
+    private String sickLeaveDocumentUrl;
+    private Integer stage;
+    private String currentApproverRole;
+    private Boolean cancelled;
     private LocalDate createdAt;
 }

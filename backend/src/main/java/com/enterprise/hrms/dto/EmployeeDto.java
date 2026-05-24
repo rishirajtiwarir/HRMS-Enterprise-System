@@ -46,6 +46,13 @@ public class EmployeeDto {
     private Long departmentId;
     private String departmentName;
 
+    private Long managerId;
+    private String managerName;
+
+    private String emergencyContactName;
+    private String emergencyContactPhone;
+    private String emergencyContactRelation;
+
     // Optional user account details
     private String username;
     private String userRole;

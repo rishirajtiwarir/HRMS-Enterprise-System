@@ -49,6 +49,18 @@ public class LeaveRequest {
     @Column(name = "rejection_reason")
     private String rejectionReason;
 
+    @Column(name = "sick_leave_document_url")
+    private String sickLeaveDocumentUrl;
+
+    @Column(name = "stage")
+    private Integer stage = 1; // 1 = Team Lead approval, 2 = HR Manager approval
+
+    @Column(name = "current_approver_role")
+    private String currentApproverRole = "ROLE_TEAM_LEAD";
+
+    @Column(name = "cancelled")
+    private Boolean cancelled = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDate createdAt;
 

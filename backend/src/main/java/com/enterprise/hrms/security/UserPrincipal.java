@@ -39,7 +39,16 @@ public class UserPrincipal implements UserDetails {
 
     public static UserPrincipal create(User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .flatMap(role -> {
+                    String name = role.getName().name();
+                    if ("ROLE_SUPER_ADMIN".equals(name)) {
+                        return java.util.stream.Stream.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"), new SimpleGrantedAuthority("ROLE_ADMIN"));
+                    } else if ("ROLE_HR_MANAGER".equals(name)) {
+                        return java.util.stream.Stream.of(new SimpleGrantedAuthority("ROLE_HR_MANAGER"), new SimpleGrantedAuthority("ROLE_HR"));
+                    } else {
+                        return java.util.stream.Stream.of(new SimpleGrantedAuthority(name));
+                    }
+                })
                 .collect(Collectors.toList());
 
         Long employeeId = user.getEmployee() != null ? user.getEmployee().getId() : null;

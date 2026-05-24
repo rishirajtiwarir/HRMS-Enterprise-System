@@ -21,6 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import org.springframework.http.HttpMethod;
 
 /**
  * Spring Security configuration configuration for filters, stateless session management, CORS rules, and endpoint permissions.
@@ -66,6 +67,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers(HttpMethod.POST, "/feedback").permitAll()
                 .anyRequest().authenticated()
             );
 
