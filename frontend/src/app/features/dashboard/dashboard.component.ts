@@ -424,9 +424,8 @@ export class DashboardComponent implements OnInit {
       this.loadFeedbacks();
     }
   }
-
   loadFeedbacks() {
-    this.http.get<any[]>('https://hrms-enterprise-system-1.onrender.com/api/v1/feedback').subscribe({
+    this.http.get<any[]>('http://localhost:8080/api/v1/feedback').subscribe({
       next: (data) => {
         this.feedbacks = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         this.unreadCount = this.feedbacks.filter(f => !f.read).length;
@@ -436,7 +435,7 @@ export class DashboardComponent implements OnInit {
   }
 
   markFeedbackAsRead(id: number) {
-    this.http.put<any>(`https://hrms-enterprise-system-1.onrender.com/api/v1/feedback/${id}/read`, {}).subscribe({
+    this.http.put<any>(`http://localhost:8080/api/v1/feedback/${id}/read`, {}).subscribe({
       next: () => {
         this.loadFeedbacks();
       },
@@ -445,7 +444,7 @@ export class DashboardComponent implements OnInit {
   }
 
   deleteFeedback(id: number) {
-    this.http.delete<any>(`https://hrms-enterprise-system-1.onrender.com/api/v1/feedback/${id}`).subscribe({
+    this.http.delete<any>(`http://localhost:8080/api/v1/feedback/${id}`).subscribe({
       next: () => {
         this.loadFeedbacks();
       },
