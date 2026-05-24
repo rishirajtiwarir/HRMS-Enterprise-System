@@ -12,7 +12,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   // Automatically rewrite local development api calls to the live production server
   let reqUrl = req.url;
   if (reqUrl.startsWith('http://localhost:8080/api/v1')) {
-    reqUrl = reqUrl.replace('http://localhost:8080/api/v1', 'https://hrms-backend-ba7y.onrender.com/api/v1');
+    reqUrl = reqUrl.replace('http://localhost:8080/api/v1', 'https://hrms-enterprise-system-1.onrender.com/api/v1');
   }
 
   req = req.clone({
